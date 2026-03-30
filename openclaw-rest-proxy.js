@@ -30,10 +30,15 @@ const WS_URL = process.env.OPENCLAW_WS_URL || "ws://localhost:18789";
 const PORT = parseInt(process.env.PROXY_PORT || "18790", 10);
 const RESPONSE_TIMEOUT_MS = 60_000;
 
-// Telegram forwarding (show STT input in Telegram)
+// Telegram config
 const TG_BOT_TOKEN = process.env.OPENCLAW_TG_BOT_TOKEN || "";
 const TG_CHAT_ID = process.env.OPENCLAW_TG_CHAT_ID || "";
 const https = require("https");
+
+// Queue of Telegram messages processed and waiting for ESP32 to pick up
+const pendingForRobot = [];
+let tgOffset = 0;
+let tgPolling = false;
 
 // ---------------------------------------------------------------------------
 // WebSocket connection state
@@ -250,6 +255,68 @@ function deduplicate(text) {
 }
 
 // ---------------------------------------------------------------------------
+// Telegram polling (receive messages typed in Telegram)
+// ---------------------------------------------------------------------------
+function pollTelegram() {
+  if (!TG_BOT_TOKEN || !TG_CHAT_ID) return;
+  if (tgPolling) return;
+  tgPolling = true;
+
+  const url = `/bot${TG_BOT_TOKEN}/getUpdates?offset=${tgOffset}&timeout=30&allowed_updates=["message"]`;
+  const req = https.request({
+    hostname: "api.telegram.org",
+    path: url,
+    method: "GET",
+  }, (res) => {
+    let body = "";
+    res.on("data", (chunk) => { body += chunk; });
+    res.on("end", async () => {
+      tgPolling = false;
+      try {
+        const data = JSON.parse(body);
+        if (data.ok && data.result) {
+          for (const update of data.result) {
+            tgOffset = update.update_id + 1;
+            const msg = update.message;
+            if (!msg || !msg.text) continue;
+            // Only process messages from the configured chat
+            if (String(msg.chat.id) !== TG_CHAT_ID) continue;
+
+            const userText = msg.text;
+            log("Telegram message:", userText.slice(0, 120));
+
+            if (!isConnected()) {
+              sendToTelegram("(Stack-chan is offline)");
+              continue;
+            }
+
+            try {
+              const aiResponse = await sendChat(userText);
+              log("Telegram AI response:", aiResponse.slice(0, 120));
+              sendToTelegram(aiResponse);
+              pendingForRobot.push({ userText, aiResponse });
+            } catch (err) {
+              log("Telegram chat error:", err.message);
+              sendToTelegram(`(Error: ${err.message})`);
+            }
+          }
+        }
+      } catch (e) {
+        log("Telegram poll parse error:", e.message);
+      }
+      // Poll again immediately
+      setImmediate(pollTelegram);
+    });
+  });
+  req.on("error", (e) => {
+    tgPolling = false;
+    log("Telegram poll error:", e.message);
+    setTimeout(pollTelegram, 5000);
+  });
+  req.end();
+}
+
+// ---------------------------------------------------------------------------
 // HTTP server
 // ---------------------------------------------------------------------------
 const server = http.createServer(async (req, res) => {
@@ -268,6 +335,24 @@ const server = http.createServer(async (req, res) => {
     const status = isConnected() ? "ok" : "disconnected";
     res.writeHead(200, { "Content-Type": "application/json" });
     return res.end(JSON.stringify({ status, sessionKey }));
+  }
+
+  // Pending Telegram messages for ESP32 to pick up
+  if (req.method === "GET" && req.url === "/v1/pending") {
+    const authHeader = req.headers["authorization"] || "";
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    if (GATEWAY_TOKEN && token !== GATEWAY_TOKEN) {
+      res.writeHead(401, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ error: { message: "Unauthorized" } }));
+    }
+    if (pendingForRobot.length > 0) {
+      const item = pendingForRobot.shift();
+      log("Pending pickup:", item.userText.slice(0, 60));
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ pending: true, userText: item.userText, aiResponse: item.aiResponse }));
+    }
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({ pending: false }));
   }
 
   // Only accept POST /v1/chat/completions
@@ -367,4 +452,5 @@ server.listen(PORT, "0.0.0.0", () => {
   log(`OpenClaw REST proxy listening on http://0.0.0.0:${PORT}`);
   log(`Gateway WebSocket: ${WS_URL}`);
   connectGateway();
+  pollTelegram();
 });

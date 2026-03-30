@@ -12,6 +12,8 @@
 #include "driver/WakeWord.h"
 #include "driver/ModuleLLM.h"
 #include <WiFiClientSecure.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
 #include "Scheduler.h"
 #include "MySchedule.h"
 #include "SDUtil.h"
@@ -422,6 +424,39 @@ void AiStackChanMod::idle(void)
 #if defined(ENABLE_CAMERA)
     avatar.set_isSubWindowEnable(isSubWindowON);
 #endif  
+  }
+
+  // Poll proxy for Telegram messages
+  if(!isOffline){
+    static unsigned long lastPollMs = 0;
+    if(millis() - lastPollMs > 3000){
+      lastPollMs = millis();
+      openclaw_s oc = robot->m_config.getExConfig().openclaw;
+      String url = String("http://") + oc.host + ":" + String(oc.port) + "/v1/pending";
+      HTTPClient http;
+      http.setTimeout(3000);
+      if(http.begin(url)){
+        http.addHeader("Authorization", String("Bearer ") + robot->m_config.getAPISetting()->ai_service);
+        int code = http.GET();
+        if(code == 200){
+          String body = http.getString();
+          DynamicJsonDocument doc(1024);
+          if(!deserializeJson(doc, body) && doc["pending"].as<bool>()){
+            const char* userText = doc["userText"];
+            const char* aiResponse = doc["aiResponse"];
+            if(userText && aiResponse){
+              Serial.printf("Telegram msg: %s\n", userText);
+              avatar.setExpression(Expression::Happy);
+              avatar.setSpeechText(userText);
+              delay(2000);
+              avatar.setSpeechText("");
+              robot->speech(String(aiResponse));
+            }
+          }
+        }
+        http.end();
+      }
+    }
   }
 
   //スケジューラ処理
