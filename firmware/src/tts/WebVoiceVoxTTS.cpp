@@ -121,12 +121,6 @@ String WebVoiceVoxTTS::voicevox_tts_url(const char* url, const char* root_ca) {
             if(doc["isApiKeyValid"]) Serial.println("OK");
             else Serial.println("NG");
             tts_url = String(mp3url);
-
-            // const char* status_url = doc["audioStatusUrl"];
-            // Serial.println(status_url);
-            // //tts_status_url = String(status_url);
-            // if(voicevox_tts_json_status(status_url, "isAudioError ", root_ca))  return tts_url;
-            // while(!voicevox_tts_json_status(status_url, "isAudioReady", root_ca)) delay(1);
           }
         } else {
           Serial.printf("[HTTPS] GET... failed, error: %s\n", https.errorToString(httpCode).c_str());

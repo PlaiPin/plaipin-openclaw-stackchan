@@ -271,11 +271,8 @@ void OpenClawClient::chat(String text, const char *base64_buf) {
         response = "応答が空です";
       }
       else{
-        Serial.println(data);
         response = stripEmoji(String(data));
         std::replace(response.begin(), response.end(), '\n', ' ');
-        Serial.print("[stripEmoji] ");
-        Serial.println(response);
       }
     }
   }
