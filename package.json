@@ -1,0 +1,12 @@
+{
+  "name": "openclaw-rest-proxy",
+  "version": "1.0.0",
+  "description": "REST-to-WebSocket proxy for OpenClaw gateway",
+  "main": "openclaw-rest-proxy.js",
+  "scripts": {
+    "start": "node openclaw-rest-proxy.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
