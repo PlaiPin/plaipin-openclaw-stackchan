@@ -68,7 +68,7 @@ static void STT_ChatGPT(const char *base64_buf = NULL) {
 #endif
 
   avatar.setExpression(Expression::Happy);
-  avatar.setSpeechText("御用でしょうか？");
+  avatar.setSpeechText("Listening...");
 
   String ret = robot->listen();
   avatar.setSpeechText("");
@@ -88,7 +88,7 @@ static void STT_ChatGPT(const char *base64_buf = NULL) {
   } else {
     Serial.println("音声認識失敗");
     avatar.setExpression(Expression::Sad);
-    avatar.setSpeechText("聞き取れませんでした");
+    avatar.setSpeechText("Couldn't hear you");
     delay(2000);
     avatar.setSpeechText("");
     avatar.setExpression(Expression::Neutral);
@@ -138,7 +138,7 @@ AiStackChanMod::AiStackChanMod(bool _isOffline)
 
 void AiStackChanMod::init(void)
 {
-  avatar.setSpeechText("AI Stack-chan");
+  avatar.setSpeechText("OpenClaw Stack-chan");
 #if defined(ENABLE_CAMERA)
   if(isSubWindowON){
     avatar.set_isSubWindowEnable(true);
@@ -172,11 +172,11 @@ void AiStackChanMod::btnA_pressed(void)
   if(mode >= 0){
     sw_tone();
     if(mode == 0){
-      avatar.setSpeechText("ウェイクワード有効");
+      avatar.setSpeechText("Wake word ON");
       mode = 1;
       wakeword_is_enable = true;
     } else {
-      avatar.setSpeechText("ウェイクワード無効");
+      avatar.setSpeechText("Wake word OFF");
       mode = 0;
       wakeword_is_enable = false;
     }
@@ -205,7 +205,7 @@ void AiStackChanMod::btnB_longPressed(void)
     servo_home = true;
     delay(500);
 #endif
-  avatar.setSpeechText("ウェイクワード登録開始");
+  avatar.setSpeechText("Recording wake word");
 #endif
 }
 
@@ -256,10 +256,10 @@ void AiStackChanMod::display_touched(int16_t x, int16_t y)
 #if defined(ENABLE_CAMERA)
     isSilentMode = !isSilentMode;
     if(isSilentMode){
-      avatar.setSpeechText("サイレントモード");
+      avatar.setSpeechText("Silent mode");
     }
     else{
-      avatar.setSpeechText("サイレントモード解除");
+      avatar.setSpeechText("Silent mode OFF");
     }
     delay(2000);
     avatar.setSpeechText("");

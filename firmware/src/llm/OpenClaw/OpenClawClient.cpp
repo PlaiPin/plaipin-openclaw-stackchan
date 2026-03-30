@@ -210,8 +210,7 @@ void OpenClawClient::chat(String text, const char *base64_buf) {
   String url = String("http://") + openclaw_host + ":" + String(openclaw_port) + "/v1/chat/completions";
 
   avatar.setExpression(Expression::Doubt);
-  avatar.setSpeechFont(&fonts::efontJA_16);
-  avatar.setSpeechText("考え中…");
+  avatar.setSpeechText("Thinking...");
 
   String ret = http_post_json(url.c_str(), json_string.c_str());
 
@@ -224,9 +223,8 @@ void OpenClawClient::chat(String text, const char *base64_buf) {
   if(ret == ""){
     // Connection error
     avatar.setExpression(Expression::Sad);
-    avatar.setSpeechFont(&fonts::efontJA_16);
-    avatar.setSpeechText("接続エラー");
-    response = "接続エラー";
+    avatar.setSpeechText("Connection error");
+    response = "Connection error";
     delay(1000);
     avatar.setSpeechText("");
     avatar.setExpression(Expression::Neutral);
@@ -238,8 +236,8 @@ void OpenClawClient::chat(String text, const char *base64_buf) {
       Serial.print(F("deserializeJson() failed: "));
       Serial.println(error.f_str());
       avatar.setExpression(Expression::Sad);
-      avatar.setSpeechText("パースエラー");
-      response = "パースエラー";
+      avatar.setSpeechText("Parse error");
+      response = "Parse error";
       delay(1000);
       avatar.setSpeechText("");
       avatar.setExpression(Expression::Neutral);
@@ -249,8 +247,8 @@ void OpenClawClient::chat(String text, const char *base64_buf) {
       const char* errMsg = doc["error"]["message"];
       Serial.printf("OpenClaw API error: %s\n", errMsg ? errMsg : "unknown");
       avatar.setExpression(Expression::Sad);
-      avatar.setSpeechText("APIエラー");
-      response = "APIエラー";
+      avatar.setSpeechText("API error");
+      response = "API error";
       delay(1000);
       avatar.setSpeechText("");
       avatar.setExpression(Expression::Neutral);
@@ -258,8 +256,8 @@ void OpenClawClient::chat(String text, const char *base64_buf) {
     else if(!doc["choices"][0]["message"].containsKey("content")){
       Serial.println("OpenClaw: missing content in response");
       avatar.setExpression(Expression::Sad);
-      avatar.setSpeechText("応答エラー");
-      response = "応答エラー";
+      avatar.setSpeechText("Response error");
+      response = "Response error";
       delay(1000);
       avatar.setSpeechText("");
       avatar.setExpression(Expression::Neutral);
@@ -268,7 +266,7 @@ void OpenClawClient::chat(String text, const char *base64_buf) {
       const char* data = doc["choices"][0]["message"]["content"];
       if(data == nullptr){
         Serial.println("OpenClaw: null content in response");
-        response = "応答が空です";
+        response = "Empty response";
       }
       else{
         response = stripEmoji(String(data));
