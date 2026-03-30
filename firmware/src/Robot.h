@@ -37,6 +37,10 @@ public:
     String listen();
     void chat(String text, const char *base64_buf = NULL);
 
+    // Mute control
+    bool isMuted = false;
+    void toggleMute();
+
     // TTS非同期版
     //
     bool asyncPlaying;

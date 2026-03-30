@@ -189,6 +189,11 @@ void AiStackChanMod::btnA_pressed(void)
 }
 
 
+void AiStackChanMod::btnB_pressed(void)
+{
+  robot->toggleMute();
+}
+
 void AiStackChanMod::btnB_longPressed(void)
 {
 #if defined(ENABLE_WAKEWORD)

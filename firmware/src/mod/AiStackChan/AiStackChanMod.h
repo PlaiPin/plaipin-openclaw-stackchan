@@ -22,6 +22,7 @@ public:
     void pause(void);
     void update(int page_no);
     void btnA_pressed(void);
+    void btnB_pressed(void);
     void btnB_longPressed(void);
     void btnC_pressed(void);
     void display_touched(int16_t x, int16_t y);

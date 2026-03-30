@@ -274,6 +274,14 @@ void Robot::initTTS(StackchanExConfig& config){
 
 }
 
+void Robot::toggleMute()
+{
+  isMuted = !isMuted;
+  avatar.setSpeechText(isMuted ? "Muted" : "Unmuted");
+  delay(1000);
+  avatar.setSpeechText("");
+}
+
 void Robot::speech(String text)
 {
   if(text != ""){
@@ -302,7 +310,15 @@ void Robot::speech(String text)
       avatar.setSpeechText(speechChunks[0].c_str());
     }
 
-    tts->stream(text);
+    if(isMuted){
+      // Show text on screen without audio
+      for(int i = 0; i < (int)speechChunks.size(); i++){
+        avatar.setSpeechText(speechChunks[i].c_str());
+        delay(2000);
+      }
+    } else {
+      tts->stream(text);
+    }
 
     avatar.setSpeechText("");
     avatar.setExpression(Expression::Neutral);
