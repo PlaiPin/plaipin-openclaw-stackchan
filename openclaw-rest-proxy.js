@@ -201,14 +201,29 @@ function extractText(message) {
   if (!message) return "";
   if (typeof message === "string") return message;
   const content = message.content;
-  if (typeof content === "string") return content;
+  if (typeof content === "string") return deduplicate(content);
   if (Array.isArray(content)) {
-    return content
-      .filter((b) => b.type === "text")
-      .map((b) => b.text)
-      .join("");
+    // Take only the last text block (gateway may include accumulated + final)
+    const textBlocks = content.filter((b) => b.type === "text");
+    if (textBlocks.length > 0) {
+      return deduplicate(textBlocks[textBlocks.length - 1].text || "");
+    }
   }
   return "";
+}
+
+// Detect and fix doubled responses (gateway sometimes sends text twice)
+function deduplicate(text) {
+  if (text.length < 20) return text;
+  const half = Math.floor(text.length / 2);
+  // Check if second half is a repeat of the first half (with some whitespace tolerance)
+  const first = text.slice(0, half).trim();
+  const second = text.slice(half).trim();
+  if (first === second) {
+    log("Deduplicated response (was doubled)");
+    return first;
+  }
+  return text;
 }
 
 // ---------------------------------------------------------------------------

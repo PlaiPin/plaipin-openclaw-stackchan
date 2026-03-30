@@ -1,3 +1,4 @@
+#include <vector>
 #include "Robot.h"
 #include "tts/WebVoiceVoxTTS.h"
 #include "tts/ElevenLabsTTS.h"
@@ -22,6 +23,11 @@ using namespace m5avatar;
 
 extern Avatar avatar;
 extern bool servo_home;
+
+// Speech text chunks for display rotation during playback
+std::vector<String> speechChunks;
+int speechChunkIndex = 0;
+unsigned long speechChunkLastMs = 0;
 
 //#if defined(REALTIME_API_WITH_TTS)
 // TTS非同期実行用のタスク
@@ -274,8 +280,31 @@ void Robot::speech(String text)
     servo_home = false;
     avatar.setExpression(Expression::Happy);
 
+    // Split text into short chunks for display rotation during playback
+    speechChunks.clear();
+    speechChunkIndex = 0;
+    int start = 0;
+    while(start < (int)text.length()){
+      int end = start + 25;
+      if(end >= (int)text.length()){
+        end = text.length();
+      } else {
+        int space = text.lastIndexOf(' ', end);
+        if(space > start) end = space;
+      }
+      String chunk = text.substring(start, end);
+      chunk.trim();
+      if(chunk.length() > 0) speechChunks.push_back(chunk);
+      start = end + 1;
+    }
+    speechChunkLastMs = millis();
+    if(speechChunks.size() > 0){
+      avatar.setSpeechText(speechChunks[0].c_str());
+    }
+
     tts->stream(text);
 
+    avatar.setSpeechText("");
     avatar.setExpression(Expression::Neutral);
     servo_home = true;
   }

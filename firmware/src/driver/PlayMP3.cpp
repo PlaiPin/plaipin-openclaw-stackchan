@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <M5Unified.h>
+#include <vector>
 #include <SD.h>
 #include <SPIFFS.h>
 #include <AudioOutput.h>
@@ -16,6 +17,11 @@ using namespace m5avatar;
 
 extern Avatar avatar;
 extern bool servo_home;
+
+// Speech text chunks for display rotation during playback
+extern std::vector<String> speechChunks;
+extern int speechChunkIndex;
+extern unsigned long speechChunkLastMs;
 
 /// set M5Speaker virtual channel (0-7)
 //static constexpr uint8_t m5spk_virtual_channel = 0;
@@ -67,7 +73,12 @@ void playMP3(AudioFileSourceBuffer *buff){
   while(mp3->isRunning()) {
     if (!mp3->loop()) {
       mp3->stop();
-      Serial.println("mp3 stop");
+    }
+    // Rotate speech text chunks on screen
+    if(speechChunks.size() > 1 && (millis() - speechChunkLastMs > 3000)){
+      speechChunkIndex = (speechChunkIndex + 1) % speechChunks.size();
+      avatar.setSpeechText(speechChunks[speechChunkIndex].c_str());
+      speechChunkLastMs = millis();
     }
     delay(1);
   }

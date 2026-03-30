@@ -264,6 +264,15 @@ void OpenClawClient::chat(String text, const char *base64_buf) {
       else{
         response = stripEmoji(String(data));
         std::replace(response.begin(), response.end(), '\n', ' ');
+        // Strip markdown bold/italic markers
+        response.replace("**", "");
+        response.replace("__", "");
+        // Cap response length to prevent TTS overload and crashes
+        if(response.length() > 200){
+          int cut = response.lastIndexOf(' ', 200);
+          if(cut < 100) cut = 200;
+          response = response.substring(0, cut);
+        }
       }
     }
   }
