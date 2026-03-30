@@ -114,21 +114,14 @@ void OpenClawClient::load_role(){
   String systemRole = systemRole_noMemory;  // Memory handled by OpenClaw server
   Serial.println("OpenClawClient: Load role from SPIFFS.");
 
+  // Always use code default for role; load userInfo from SPIFFS if available
+  role = defaultRole;
   if(load_system_prompt_from_spiffs()){
-    role = String((const char*)systemPrompt["messages"][SYSTEM_PROMPT_INDEX_USER_ROLE]["content"]);
-    if (role == "") {
-      Serial.println("SPIFFS user role is empty. set default role.");
-      role = defaultRole;
-    }
-
     userInfo = String((const char*)systemPrompt["messages"][SYSTEM_PROMPT_INDEX_USER_INFO]["content"]);
     int idx = userInfo.indexOf("User Info");
     if(idx < 0){
       userInfo = "User Info: ";
     }
-  }else{
-    role = defaultRole;
-    userInfo = "User Info: ";
   }
 
   init_chat_doc(json_OpenClawChatString.c_str());
