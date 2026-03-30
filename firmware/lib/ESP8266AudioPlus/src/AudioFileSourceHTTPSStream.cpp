@@ -44,9 +44,7 @@ bool AudioFileSourceHTTPSStream::open(const char *url)
   client.setCACert(rootCACertificate);
   http.begin(client, url);
   http.setReuse(true);
-#ifndef ESP32
   http.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
-#endif
   int code = http.GET();
   if (code != HTTP_CODE_OK) {
     http.end();
@@ -87,6 +85,10 @@ uint32_t AudioFileSourceHTTPSStream::readInternal(void *data, uint32_t len, bool
 {
 retry:
   if (!http.connected()) {
+    // For streaming responses (size=-1), connection close after reading data means EOF
+    if (size < 0 && pos > 0) {
+      return 0;
+    }
     cb.st(STATUS_DISCONNECTED, PSTR("Stream disconnected"));
     http.end();
     for (int i = 0; i < reconnectTries; i++) {
@@ -113,7 +115,7 @@ retry:
 
   if (!nonBlock) {
     int start = millis();
-    while ((stream->available() < (int)len) && (millis() - start < 500)) yield();
+    while ((stream->available() < (int)len) && (millis() - start < 10000)) yield();
   }
 
   size_t avail = stream->available();
