@@ -30,6 +30,11 @@ const WS_URL = process.env.OPENCLAW_WS_URL || "ws://localhost:18789";
 const PORT = parseInt(process.env.PROXY_PORT || "18790", 10);
 const RESPONSE_TIMEOUT_MS = 60_000;
 
+// Telegram forwarding (show STT input in Telegram)
+const TG_BOT_TOKEN = process.env.OPENCLAW_TG_BOT_TOKEN || "";
+const TG_CHAT_ID = process.env.OPENCLAW_TG_CHAT_ID || "";
+const https = require("https");
+
 // ---------------------------------------------------------------------------
 // WebSocket connection state
 // ---------------------------------------------------------------------------
@@ -47,6 +52,24 @@ function nextReqId() {
 
 function log(...args) {
   console.log(`[${new Date().toISOString()}]`, ...args);
+}
+
+// Send user's STT input to Telegram so both sides of the conversation are visible
+function sendToTelegram(text) {
+  if (!TG_BOT_TOKEN || !TG_CHAT_ID) return;
+  const body = JSON.stringify({
+    chat_id: TG_CHAT_ID,
+    text: `🎙️ *Stack-chan heard:*\n${text}`,
+    parse_mode: "Markdown",
+  });
+  const req = https.request({
+    hostname: "api.telegram.org",
+    path: `/bot${TG_BOT_TOKEN}/sendMessage`,
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  req.on("error", (e) => log("Telegram send error:", e.message));
+  req.end(body);
 }
 
 // ---------------------------------------------------------------------------
@@ -301,6 +324,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   log("Request:", userMessage.slice(0, 200));
+  sendToTelegram(userMessage);
 
   try {
     const content = await sendChat(userMessage);
