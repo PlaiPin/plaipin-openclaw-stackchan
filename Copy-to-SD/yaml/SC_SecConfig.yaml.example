@@ -1,0 +1,10 @@
+# 個人情報用の設定ファイル
+wifi:
+  ssid: "YOUR_WIFI_SSID"
+  password: "YOUR_WIFI_PASSWORD"
+
+
+apikey:
+  stt: "YOUR_GROQ_WHISPER_API_KEY"       # Groq Whisper API key
+  aiservice: "YOUR_OPENCLAW_BEARER_TOKEN" # Bearer token for OpenClaw proxy
+  tts: "YOUR_VOICEVOX_API_KEY"       # su-shiki VOICEVOX API key (register sha256 with tts.quest first)
