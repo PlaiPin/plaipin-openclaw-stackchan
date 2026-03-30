@@ -48,7 +48,17 @@ void mp3_init(void)
 void playMP3(AudioFileSourceBuffer *buff){
 
   M5.Mic.end();
-  M5.Speaker.begin();
+  if (!M5.Speaker.begin()) {
+    Serial.println("[playMP3] Speaker.begin() FAILED, retrying...");
+    M5.Speaker.end();
+    delay(100);
+    if (!M5.Speaker.begin()) {
+      Serial.println("[playMP3] Speaker.begin() FAILED again, aborting");
+      M5.Mic.begin();
+      return;
+    }
+  }
+  Serial.println("[playMP3] Speaker.begin() OK");
 
   if (!mp3->begin(buff, &out)) {
     Serial.println("mp3 begin failed");

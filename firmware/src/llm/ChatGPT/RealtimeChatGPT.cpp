@@ -50,7 +50,7 @@ static const char session_update[] =
               "\"voice\": \"marin\""
             "}"
           "},"
-          "\"instructions\": \"You are an AI robot named Stack-chan. Please speak in Japanese.\","
+          "\"instructions\": \"You are an AI robot named Stack-chan. Please speak in English.\","
           "\"tools\":[]"
         "}"
       "}";

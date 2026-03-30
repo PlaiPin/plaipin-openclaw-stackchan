@@ -24,7 +24,7 @@ const String SYSTEM_PROMPT_FORMAT =
 "}";
 
 // ユーザーが設定するロールのデフォルト設定用
-const String defaultRole = "You are an AI robot named Stack-chan. Please speak in Japanese.";
+const String defaultRole = "You are an AI robot named Stack-chan. Please speak in English.";
 // システム用のロール（Function Callingの利用方針など）
 const String systemRole_memory = "If the conversation includes user attributes (such as hobbies or interests) or memorable episodes, summarize them and use the update_memory tool to update the User Info in the system prompt. The summary should also inherit the contents of the old User Info as much as possible.";
 const String systemRole_noMemory = "Memory function disabled. Do not use update_memory tool.";
