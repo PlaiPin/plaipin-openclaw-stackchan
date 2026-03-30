@@ -28,7 +28,7 @@ String Whisper::Transcribe(AudioWhisper* audio) {
   const String header = "--" + String(boundary) + "\r\n"
     "Content-Disposition: form-data; name=\"model\"\r\n\r\nwhisper-large-v3-turbo\r\n"
     "--" + String(boundary) + "\r\n"
-    "Content-Disposition: form-data; name=\"language\"\r\n\r\nja\r\n"
+    "Content-Disposition: form-data; name=\"language\"\r\n\r\nen\r\n"
     "--" + String(boundary) + "\r\n"
     "Content-Disposition: form-data; name=\"file\"; filename=\"speak.wav\"\r\n"
     "Content-Type: application/octet-stream\r\n\r\n";
