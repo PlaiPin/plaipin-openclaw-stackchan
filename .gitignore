@@ -1,0 +1,23 @@
+# Sensitive config files (contain API keys, WiFi passwords, server IPs)
+Copy-to-SD/yaml/SC_SecConfig.yaml
+Copy-to-SD/app/AiStackChanEx/SC_ExConfig.yaml
+
+# macOS
+.DS_Store
+
+# Node
+node_modules/
+
+# PlatformIO
+.pio/
+
+# IDE
+.vscode/
+
+# Environment files
+.env
+.env.*
+
+# Aquestalk library (proprietary)
+firmware/lib/aquestalk/
+firmware/data/
